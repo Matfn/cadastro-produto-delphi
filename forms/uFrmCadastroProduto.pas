@@ -18,13 +18,6 @@ type
     pnlOperacoes: TPanel;
     btnCancelar: TSpeedButton;
     btnGravar: TSpeedButton;
-    tbProdutos: TADOTable;
-    tbProdutosNCHPRODUTO: TAutoIncField;
-    tbProdutosTDESCRICAO: TStringField;
-    tbProdutosTCODIGOBARRAS: TStringField;
-    tbProdutosNVALORVENDA: TFloatField;
-    tbProdutosNQTDESTOQUE: TFloatField;
-    tbProdutosTUNIDADE: TStringField;
     lblUnidade: TLabel;
     edtCodigoBarras: TEdit;
     edtDescricao: TEdit;
@@ -51,7 +44,7 @@ var
 implementation
 
 uses
-  uDataModulo;
+  uDataModulo, uMensagens, uObjProduto;
 
 {$R *.dfm}
 
@@ -59,35 +52,67 @@ uses
 
 procedure TfrmCadastroProduto.btnCancelarClick(Sender: TObject);
 begin
-  if Application.MessageBox('Deseja realmente cancelar a operação?', 'Cancelar', MB_ICONINFORMATION + MB_YESNO) = mrYes then
+  if Mensagem.Confirma('Deseja realmente cancelar a operação?') then
   begin
-    tbProdutos.Cancel;
     Self.Close;
   end;
 end;
 
 procedure TfrmCadastroProduto.btnGravarClick(Sender: TObject);
 var
-  sOperacao: string;
+  produto: TProduto;
+  valorVenda, qtdEstoque: Extended;
 begin
-  sOperacao := '';
-  edtCodigoBarras.SetFocus;
+  produto := nil;
+  valorVenda := 0;
+  qtdEstoque := 0;
 
   if Self.ValidarDados then
   begin
-    tbProdutos.Post;
+    produto := TProduto.Create;
+    try
+      produto.ChProduto := Self.FChProduto;
+      produto.CodigoBarras :=  edtCodigoBarras.Text;
+      produto.Descricao := edtDescricao.Text;
+      produto.Unidade := cboUnidade.Items[cboUnidade.ItemIndex];
 
-    if Self.FChProduto = 0 then
-    begin
-      sOperacao := 'cadastrado'
-    end
-    else
-    begin
-      sOperacao := 'alterado';
+      if TryStrToFloat(edtValorVenda.Text, valorVenda) then
+      begin
+        produto.ValorVenda := valorVenda;
+      end
+      else
+      begin
+        produto.ValorVenda := 0;
+      end;
+
+      if TryStrToFloat(edtQtdEstoque.Text, qtdEstoque) then
+      begin
+        produto.QtdEstoque := qtdEstoque;
+      end
+      else
+      begin
+        produto.QtdEstoque := 0;
+      end;
+
+      if Self.FChProduto = 0 then
+      begin
+        if produto.CadastrarProduto then
+        begin
+          Mensagem.Aviso('Produto cadastrado com sucesso!');
+        end;
+      end
+      else
+      begin
+        if produto.AlterarProduto then
+        begin
+          Mensagem.Aviso('Produto alterado com sucesso!');
+        end;
+      end;
+
+      Self.Close;
+    finally
+      if Assigned(produto) then FreeAndNil(produto);
     end;
-
-    Application.MessageBox(PWideChar(Format('Produto %s com sucesso!', [sOperacao])), 'Aviso', MB_ICONINFORMATION);
-    Self.Close;
   end;
 end;
 
@@ -135,51 +160,46 @@ begin
 end;
 
 procedure TfrmCadastroProduto.FormShow(Sender: TObject);
+var
+  produto: TProduto;
 begin
-  tbProdutos.Close;
-  tbProdutos.Open;
+  produto := nil;
 
   if Self.FChProduto = 0 then
   begin
-    tbProdutos.Append;
     cboUnidade.ItemIndex := 0;
   end
   else
   begin
-    tbProdutos.Locate('NCHPRODUTO', Self.FChProduto, []);
-    tbProdutos.Edit;
-
-    edtCodigoBarras.Text := tbProdutos.FieldByName('TCODIGOBARRAS').AsString;
-    edtDescricao.Text := tbProdutos.FieldByName('TDESCRICAO').AsString;
-    cboUnidade.Text := tbProdutos.FieldByName('TUNIDADE').AsString;
-    edtValorVenda.Text := FormatFloat('#,##0.00',tbProdutos.FieldByName('NVALORVENDA').AsExtended);
-    edtQtdEstoque.Text := FormatFloat('#,##0.00',tbProdutos.FieldByName('NQTDESTOQUE').AsExtended);
+    produto := TProduto.Create(Self.FChProduto);
+    try
+      if Assigned(produto) then
+      begin
+        edtCodigoBarras.Text := produto.CodigoBarras;
+        edtDescricao.Text := produto.Descricao;
+        cboUnidade.Text := produto.Unidade;
+        edtValorVenda.Text := FormatFloat('#,##0.00', produto.ValorVenda);
+        edtQtdEstoque.Text := FormatFloat('#,##0.00', produto.QtdEstoque);
+      end;
+    finally
+      if Assigned(produto) then FreeAndNil(produto);
+    end;
   end;
 end;
 
 function TfrmCadastroProduto.ValidarDados: Boolean;
-
-procedure CampoInvalido(aMensagemErro: string; aFocalizar: TDBEdit);
-begin
-  Application.MessageBox(PWideChar(aMensagemErro), 'Erro', MB_ICONERROR);
-  aFocalizar.SetFocus;
-end;
-
 var
   sCamposInv, sCodBarras: string;
   i: Integer;
+  valorVenda, qtdEstoque: Extended;
 begin
   Result := True;
   sCamposInv := '';
   sCodBarras := '';
+  valorVenda := 0;
+  qtdEstoque := 0;
 
-  tbProdutos.FieldByName('TCODIGOBARRAS').AsString := edtCodigoBarras.Text;
-  tbProdutos.FieldByName('TDESCRICAO').AsString := edtDescricao.Text;
-  tbProdutos.FieldByName('TUNIDADE').AsString := cboUnidade.Items[cboUnidade.ItemIndex];
-  tbProdutos.FieldByName('NVALORVENDA').AsString := edtValorVenda.Text;
-  tbProdutos.FieldByName('NQTDESTOQUE').AsString := edtQtdEstoque.Text;
-
-  sCodBarras := tbProdutos.FieldByName('TCODIGOBARRAS').AsString;
+  sCodBarras := edtCodigoBarras.Text;
 
   if sCodBarras.Equals('') then
   begin
@@ -197,29 +217,29 @@ begin
     end;
   end;
 
-  if tbProdutos.FieldByName('TDESCRICAO').AsString.Equals('') then
+  if string(edtDescricao.Text).Equals('') then
   begin
     sCamposInv := sCamposInv + Copy(lblDescricao.Caption, 1, (Length(lblDescricao.Caption) - 1)) + #13;
   end;
 
-  if tbProdutos.FieldByName('NVALORVENDA').AsString.Equals('') then
+  if ((string(edtValorVenda.Text).Equals('')) or (not TryStrToFloat(edtValorVenda.Text, valorVenda))) then
   begin
     sCamposInv := sCamposInv + Copy(lblValorVenda.Caption, 1, (Length(lblValorVenda.Caption) - 1)) + #13;
   end;
 
-  if tbProdutos.FieldByName('NQTDESTOQUE').AsString.Equals('') then
+  if ((string(edtQtdEstoque.Text).Equals('')) or (not TryStrToFloat(edtQtdEstoque.Text, qtdEstoque))) then
   begin
     sCamposInv := sCamposInv + Copy(lblQtdEstoque.Caption, 1, (Length(lblQtdEstoque.Caption) - 1)) + #13;
   end;
 
-  if tbProdutos.FieldByName('TUNIDADE').AsString.Equals('') then
+  if cboUnidade.Items[cboUnidade.ItemIndex].Equals('') then
   begin
     sCamposInv := sCamposInv + Copy(lblUnidade.Caption, 1, (Length(lblUnidade.Caption) - 1));
   end;
 
   if not sCamposInv.Equals('') then
   begin
-    Application.MessageBox(PWideChar('Não foi possível completar a operação, os seguintes campos estão inválidos:' + #13#13 + sCamposInv), 'Erro', MB_ICONERROR);
+    Mensagem.Erro('Não foi possível completar a operação, os seguintes campos estão inválidos:' + #13#13 + sCamposInv);
     Result := False;
   end;
 end;

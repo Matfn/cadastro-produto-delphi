@@ -550,7 +550,6 @@
     end
   end
   object queryProdutos: TADOQuery
-    Active = True
     Connection = DataModulo.ConexaoBanco
     CursorType = ctStatic
     Parameters = <>
@@ -558,9 +557,9 @@
       'SELECT NCHPRODUTO AS '#39'C'#243'd. Produto'#39','
       '       TCODIGOBARRAS AS '#39'C'#243'd. Barras'#39','
       '       TDESCRICAO AS '#39'Descri'#231#227'o'#39','
+      '       TUNIDADE AS '#39'Unidade'#39','
       '       NVALORVENDA AS '#39'Valor Venda'#39','
-      '       NQTDESTOQUE AS '#39'Qtd. Estoque'#39','
-      '       TUNIDADE AS '#39'Unidade'#39
+      '       NQTDESTOQUE AS '#39'Qtd. Estoque'#39
       '  FROM dbo.TABPRODUTOS')
     Left = 400
     Top = 16
@@ -578,6 +577,10 @@
       ReadOnly = True
       Size = 80
     end
+    object queryProdutosUnidade: TStringField
+      FieldName = 'Unidade'
+      Size = 10
+    end
     object queryProdutosValorVenda: TFloatField
       FieldName = 'Valor Venda'
       ReadOnly = True
@@ -587,10 +590,6 @@
       FieldName = 'Qtd. Estoque'
       ReadOnly = True
       DisplayFormat = '#,##0.00'
-    end
-    object queryProdutosUnidade: TStringField
-      FieldName = 'Unidade'
-      Size = 10
     end
   end
   object DataSourceProdutos: TDataSource

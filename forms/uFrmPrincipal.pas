@@ -41,7 +41,7 @@ var
 implementation
 
 uses
-  uDataModulo, uFrmCadastroProduto;
+  uDataModulo, uFrmCadastroProduto, uMensagens, uObjProduto;
 
 {$R *.dfm}
 
@@ -76,26 +76,33 @@ end;
 procedure TfrmPrincipal.btnExcluirClick(Sender: TObject);
 var
   chProduto: Integer;
-  queryDelete: TADOQuery;
+  produto: TProduto;
 begin
   if Self.ValidarProduto then
   begin
     chProduto := queryProdutos.Fields[0].AsInteger;
 
-    if Application.MessageBox(PWideChar(Format('Deseja realmente excluir o produto de cód. %d?', [chProduto])), 'Excluir', MB_ICONWARNING + MB_YESNO) = mrYes then
+    if Mensagem.Confirma('Deseja realmente excluir o produto de cód. %d?', [chProduto]) then
     begin
-      queryProdutos.Delete;
+      produto := TProduto.Create(chProduto);
+      try
+        if produto.ExcluirProduto then
+        begin
+          queryProdutos.Close;
+          queryProdutos.Open;
 
-      Application.MessageBox(PWideChar(Format('Produto de cód. %d excluído com sucesso!', [chProduto])), 'Aviso', MB_ICONINFORMATION);
-      queryProdutos.Close;
-      queryProdutos.Open;
+          Mensagem.Aviso('Produto excluído com sucesso!');
+        end;
+      finally
+        if Assigned(produto) then FreeAndNil(produto);
+      end;
     end;
   end;
 end;
 
 procedure TfrmPrincipal.btnSairClick(Sender: TObject);
 begin
-  if Application.MessageBox('Deseja sair da aplicação?', 'Sair', MB_ICONQUESTION + MB_YESNO) = mrYes then
+  if Mensagem.Confirma('Deseja sair da aplicação?') then
   begin
     Self.Close;
   end;
@@ -118,7 +125,7 @@ begin
   if queryProdutos.Fields[0].AsInteger = 0 then
   begin
     Result := False;
-    Application.MessageBox('Não foi possível completar a operação, nenhum produto foi selecionado.', 'Erro', MB_ICONERROR);
+    Mensagem.Erro('Não foi possível completar a operação, nenhum produto foi selecionado.');
   end
 end;
 

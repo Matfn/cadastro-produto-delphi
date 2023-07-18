@@ -96,7 +96,7 @@ object frmCadastroProduto: TfrmCadastroProduto
         Top = 156
         Width = 80
         Height = 23
-        TabOrder = 2
+        TabOrder = 4
         OnExit = edtQtdEstoqueExit
       end
       object cboUnidade: TComboBox
@@ -105,7 +105,7 @@ object frmCadastroProduto: TfrmCadastroProduto
         Width = 145
         Height = 23
         ItemIndex = 0
-        TabOrder = 3
+        TabOrder = 2
         Text = 'UN'
         OnExit = cboUnidadeExit
         Items.Strings = (
@@ -122,7 +122,7 @@ object frmCadastroProduto: TfrmCadastroProduto
         Top = 119
         Width = 80
         Height = 23
-        TabOrder = 4
+        TabOrder = 3
         OnExit = edtValorVendaExit
       end
     end
@@ -385,42 +385,6 @@ object frmCadastroProduto: TfrmCadastroProduto
         ExplicitLeft = -6
         ExplicitTop = 4
       end
-    end
-  end
-  object tbProdutos: TADOTable
-    Connection = DataModulo.ConexaoBanco
-    CursorType = ctStatic
-    TableName = 'TABPRODUTOS'
-    Left = 360
-    Top = 136
-    object tbProdutosNCHPRODUTO: TAutoIncField
-      Alignment = taLeftJustify
-      FieldName = 'NCHPRODUTO'
-      ReadOnly = True
-    end
-    object tbProdutosTDESCRICAO: TStringField
-      FieldName = 'TDESCRICAO'
-      Size = 80
-    end
-    object tbProdutosTCODIGOBARRAS: TStringField
-      FieldName = 'TCODIGOBARRAS'
-      Size = 30
-    end
-    object tbProdutosNVALORVENDA: TFloatField
-      Alignment = taLeftJustify
-      FieldName = 'NVALORVENDA'
-      DisplayFormat = '#,##0.00'
-      EditFormat = '#,##0.00'
-    end
-    object tbProdutosNQTDESTOQUE: TFloatField
-      Alignment = taLeftJustify
-      FieldName = 'NQTDESTOQUE'
-      DisplayFormat = '#,##0.00'
-      EditFormat = '#,##0.00'
-    end
-    object tbProdutosTUNIDADE: TStringField
-      FieldName = 'TUNIDADE'
-      Size = 10
     end
   end
 end
