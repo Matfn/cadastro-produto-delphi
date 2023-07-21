@@ -1,7 +1,5 @@
-conexaoBanco/__history/
-conexaoBanco/__recovery/
-forms/__history/
-objetos/__history
+*__history
+*__recovery
 Win32/
 ProjetoCadProduto.res
 ProjetoCadProduto.dproj.local
